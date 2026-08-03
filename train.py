@@ -133,8 +133,8 @@ def main():
     print("="*70)
 
     # Hyperparameters
-    n_epochs = 100
-    batch_size = 32
+    n_epochs = 50
+    batch_size = 36
     hidden_sizes = (256, 128, 64)
 
     # Load data

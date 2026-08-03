@@ -79,7 +79,6 @@ class MSE:
         Returns:
             loss: Scalar average loss
         """
-        batch_size = y_true.shape[0]
         diff = y_true - y_pred
         loss = np.mean(diff ** 2)
         return loss
@@ -88,10 +87,9 @@ class MSE:
         """
         Compute gradient of MSE w.r.t. output.
         
-        dL/dy_pred = -2 * (y_true - y_pred) / batch_size
+        dL/dy_pred = -2 * (y_true - y_pred) 
         """
-        batch_size = y_true.shape[0]
-        return -2 * (y_true - y_pred) / batch_size
+        return -2 * (y_true - y_pred) 
 
 
 class BinaryCrossentropy:
