@@ -2,8 +2,12 @@
 Multi-Layer Perceptron: Composition of Dense layers
 """
 
+from __future__ import annotations
+
 import copy
 import numpy as np
+
+from .layer import DenseLayer
 
 
 class MLP:
@@ -16,27 +20,27 @@ class MLP:
     - Weight/bias updates via optimizer
     """
     
-    def __init__(self):
-        self.layers = []
+    def __init__(self) -> None:
+        self.layers: list[DenseLayer] = []
         self.optimizer = None
         self.loss_fn = None
     
-    def add_layer(self, layer):
+    def add_layer(self, layer: DenseLayer) -> MLP:
         """Add a dense layer to the network"""
         self.layers.append(layer)
         return self
     
-    def set_optimizer(self, optimizer):
+    def set_optimizer(self, optimizer) -> MLP:
         """Set optimizer for weight updates"""
         self.optimizer = optimizer
         return self
     
-    def set_loss(self, loss_fn):
+    def set_loss(self, loss_fn) -> MLP:
         """Set loss function"""
         self.loss_fn = loss_fn
         return self
     
-    def forward(self, x):
+    def forward(self, x: np.ndarray) -> np.ndarray:
         """
         Forward pass: propagate input through all layers
         
@@ -50,7 +54,7 @@ class MLP:
             x = layer.forward(x)
         return x
     
-    def backward(self, dL_doutput):
+    def backward(self, dL_doutput: np.ndarray) -> None:
         """
         Backward pass: propagate gradient through all layers (reverse order)
         
@@ -64,7 +68,7 @@ class MLP:
         for layer in reversed(self.layers):
             dL_doutput = layer.backward(dL_doutput)
     
-    def update_weights(self):
+    def update_weights(self) -> None:
         """
         Update weights and biases using optimizer.
 
@@ -86,7 +90,7 @@ class MLP:
             # Update parameters
             layer.update_parameters(dW_update, db_update)
     
-    def predict(self, x):
+    def predict(self, x: np.ndarray) -> np.ndarray:
         """
         Predict: forward pass + argmax (for classification)
         
@@ -99,28 +103,28 @@ class MLP:
         logits = self.forward(x)
         return np.argmax(logits, axis=1)
     
-    def predict_proba(self, x):
+    def predict_proba(self, x: np.ndarray) -> np.ndarray:
         """Get probability predictions (before argmax)"""
         return self.forward(x)
     
-    def get_layers(self):
+    def get_layers(self) -> list[DenseLayer]:
         """Return list of layers"""
         return self.layers
     
-    def get_weights(self):
+    def get_weights(self) -> list[dict[str, np.ndarray]]:
         """Get all weights and biases"""
         weights = []
         for layer in self.layers:
             weights.append({'W': layer.W.copy(), 'b': layer.b.copy()})
         return weights
     
-    def set_weights(self, weights):
+    def set_weights(self, weights: list[dict[str, np.ndarray]]) -> None:
         """Set weights and biases"""
         for i, layer in enumerate(self.layers):
             layer.W = weights[i]['W'].copy()
             layer.b = weights[i]['b'].copy()
     
-    def summary(self):
+    def summary(self) -> None:
         """Print network architecture summary"""
         total_params = 0
         print("=" * 70)

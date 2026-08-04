@@ -2,6 +2,10 @@
 Dense (Fully Connected) Layer implementation
 """
 
+from __future__ import annotations
+
+from typing import Callable
+
 import numpy as np
 
 
@@ -18,7 +22,18 @@ class DenseLayer:
         activation_derivative: Derivative of activation function
     """
     
-    def __init__(self, input_size, output_size, activation_fn=None, activation_derivative=None):
+    def __init__(
+        self,
+        input_size: int,
+        output_size: int,
+        activation_fn: Callable[[np.ndarray], np.ndarray] | None = None,
+        activation_derivative: Callable[[np.ndarray], np.ndarray] | None = None,
+    ) -> None:
+        if not isinstance(input_size, int) or isinstance(input_size, bool) or input_size <= 0:
+            raise ValueError(f"input_size must be a positive integer, got {input_size!r}")
+        if not isinstance(output_size, int) or isinstance(output_size, bool) or output_size <= 0:
+            raise ValueError(f"output_size must be a positive integer, got {output_size!r}")
+
         self.input_size = input_size
         self.output_size = output_size
         self.activation_fn = activation_fn
@@ -37,7 +52,7 @@ class DenseLayer:
         self.input_cache = None
         self.z_cache = None  # Pre-activation (z = x @ W + b)
     
-    def forward(self, x):
+    def forward(self, x: np.ndarray) -> np.ndarray:
         """
         Forward pass: compute output = activation(x @ W + b)
         
@@ -65,7 +80,7 @@ class DenseLayer:
         
         return output
     
-    def backward(self, dL_dout):
+    def backward(self, dL_dout: np.ndarray) -> np.ndarray:
         """
         Backward pass: compute gradients using chain rule.
         
@@ -95,11 +110,11 @@ class DenseLayer:
         
         return dL_dinput
     
-    def get_gradients(self):
+    def get_gradients(self) -> tuple[np.ndarray | None, np.ndarray | None]:
         """Return computed gradients"""
         return self.dW, self.db
     
-    def update_parameters(self, dW, db):
+    def update_parameters(self, dW: np.ndarray, db: np.ndarray) -> None:
         """Update weights and biases (used by optimizer)"""
         self.W -= dW
         self.b -= db

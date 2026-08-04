@@ -225,6 +225,33 @@ def test_optimizer_adam():
     print(f"✓ Adam optimizer working: updates computed across steps")
 
 
+def test_dense_layer_validation():
+    """Test DenseLayer rejects invalid dimensions."""
+    print("\n" + "="*60)
+    print("TEST 8: DenseLayer Input Validation")
+    print("="*60)
+
+    invalid_cases = [
+        (0, 2),
+        (-1, 2),
+        (2, 0),
+        (2, -3),
+    ]
+
+    for input_size, output_size in invalid_cases:
+        try:
+            DenseLayer(input_size=input_size, output_size=output_size)
+        except ValueError:
+            print(f"✓ Rejected invalid dimensions: input_size={input_size}, output_size={output_size}")
+        else:
+            raise AssertionError(
+                f"DenseLayer should reject input_size={input_size}, output_size={output_size}"
+            )
+
+    valid_layer = DenseLayer(input_size=3, output_size=2)
+    print(f"✓ Accepted valid dimensions: {valid_layer.input_size} -> {valid_layer.output_size}")
+
+
 if __name__ == "__main__":
     print("\n╔" + "="*58 + "╗")
     print("║" + " "*15 + "MLP Unit Tests - Forward/Backward Pass" + " "*5 + "║")
@@ -238,6 +265,7 @@ if __name__ == "__main__":
     test_loss_functions()
     test_optimizer_sgd()
     test_optimizer_adam()
+    test_dense_layer_validation()
     
     print("\n" + "="*60)
     print("✓✓✓ ALL TESTS PASSED ✓✓✓")
