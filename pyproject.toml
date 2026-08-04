@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mlp-from-scratch"
+version = "0.1.0"
+description = "From-scratch MLP implementation for MNIST classification"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=2.5.1",
+    "matplotlib>=3.11.1",
+    "scikit-learn>=1.0.0",
+    "python-dotenv>=1.2.2",
+    "tensorflow>=2.16.0",
+]
+
+[project.scripts]
+mlp-train = "mlp.train:main"
+mlp-evaluate = "mlp.evaluate:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["mlp*"]

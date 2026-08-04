@@ -2,11 +2,7 @@
 Unit tests for MLP components - Forward/Backward pass verification
 """
 
-import os
 import numpy as np
-import sys
-PROJECT_ROOT = os.getenv('PROJECT_ROOT', os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-sys.path.insert(0, PROJECT_ROOT)
 
 from mlp.layer import DenseLayer
 from mlp.network import MLP
