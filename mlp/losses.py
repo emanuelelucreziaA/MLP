@@ -6,6 +6,8 @@ Key concept:
   - Derivative dL/dy_pred: used in backward pass to start gradient flow
 """
 
+from __future__ import annotations
+
 import numpy as np
 
 
@@ -24,7 +26,7 @@ class CrossEntropy:
     But typically combined with softmax: dL/dz = (y_pred - y_true)
     """
     
-    def __call__(self, y_true, y_pred):
+    def __call__(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
         """
         Compute cross-entropy loss
         
@@ -45,7 +47,7 @@ class CrossEntropy:
         loss = -np.sum(y_true * np.log(y_pred_clipped)) / batch_size
         return loss
     
-    def gradient(self, y_true, y_pred):
+    def gradient(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         """
         Compute gradient of loss w.r.t. output.
         
@@ -68,7 +70,7 @@ class MSE:
     Gradient: dL/dy_pred = -2 * (y_true - y_pred) / n
     """
     
-    def __call__(self, y_true, y_pred):
+    def __call__(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
         """
         Compute MSE loss
         
@@ -83,7 +85,7 @@ class MSE:
         loss = np.mean(diff ** 2)
         return loss
     
-    def gradient(self, y_true, y_pred):
+    def gradient(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         """
         Compute gradient of MSE w.r.t. output.
         
@@ -104,7 +106,7 @@ class BinaryCrossentropy:
       - y_pred: sigmoid output (batch_size, 1)
     """
     
-    def __call__(self, y_true, y_pred):
+    def __call__(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
         """
         Compute binary cross-entropy loss
         
@@ -125,7 +127,7 @@ class BinaryCrossentropy:
                         (1 - y_true) * np.log(1 - y_pred_clipped))
         return loss
     
-    def gradient(self, y_true, y_pred):
+    def gradient(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         """
         Gradient of binary cross-entropy w.r.t. output.
         

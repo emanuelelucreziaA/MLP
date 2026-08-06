@@ -41,7 +41,7 @@ MLP/
 ```bash
 source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+python -m pip install -e .
 ```
 
 ### 2. Train Model
@@ -56,6 +56,12 @@ This will:
 - Save metrics to `data/`
 - Save checkpoint metadata and weights to `mlp_model.pkl`
 
+You can also use the console script installed by the package:
+
+```bash
+mlp-train
+```
+
 ### 3. Evaluate Model
 
 ```bash
@@ -68,10 +74,16 @@ This will:
 - Run inference on the test set
 - Print overall and per-class metrics
 
+You can also use the console script installed by the package:
+
+```bash
+mlp-evaluate
+```
+
 ### 4. Run Tests
 
 ```bash
-python tests/test_basics.py
+python -m pytest tests/test_basics.py
 ```
 
 Tests cover:

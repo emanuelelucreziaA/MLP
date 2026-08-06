@@ -7,6 +7,8 @@ Key concept:
   - Different strategies: SGD (simple), Adam (adaptive learning rates)
 """
 
+from __future__ import annotations
+
 import numpy as np
 
 
@@ -26,13 +28,13 @@ class SGD:
         momentum: Acceleration parameter (typically 0.9, use 0 to disable)
     """
     
-    def __init__(self, learning_rate=0.01, momentum=0.0):
+    def __init__(self, learning_rate: float = 0.01, momentum: float = 0.0) -> None:
         self.learning_rate = learning_rate
         self.momentum = momentum
         self.velocity_W = None
         self.velocity_b = None
     
-    def update(self, dW, db):
+    def update(self, dW: np.ndarray, db: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """
         Compute update step for weights and biases.
         
@@ -54,7 +56,7 @@ class SGD:
         
         return self.velocity_W, self.velocity_b
     
-    def reset(self):
+    def reset(self) -> None:
         """Reset momentum buffers"""
         self.velocity_W = None
         self.velocity_b = None
@@ -82,7 +84,13 @@ class Adam:
     Advantage: Adaptive learning rates per parameter, converges faster
     """
     
-    def __init__(self, learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8):
+    def __init__(
+        self,
+        learning_rate: float = 0.001,
+        beta1: float = 0.9,
+        beta2: float = 0.999,
+        epsilon: float = 1e-8,
+    ) -> None:
         self.learning_rate = learning_rate
         self.beta1 = beta1
         self.beta2 = beta2
@@ -99,7 +107,7 @@ class Adam:
         # Time step counter
         self.t = 0
     
-    def update(self, dW, db):
+    def update(self, dW: np.ndarray, db: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """
         Compute Adam update step.
         
@@ -142,7 +150,7 @@ class Adam:
         
         return update_W, update_b
     
-    def reset(self):
+    def reset(self) -> None:
         """Reset optimizer state"""
         self.m_W = None
         self.m_b = None
