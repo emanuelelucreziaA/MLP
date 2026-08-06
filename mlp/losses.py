@@ -56,8 +56,9 @@ class CrossEntropy:
         
         This is the gradient that gets passed to backward pass.
         """
-        # For softmax + cross-entropy, the gradient is simply:
-        return y_pred - y_true
+        batch_size = y_true.shape[0]
+        # For softmax + cross-entropy with mean reduction over batch:
+        return (y_pred - y_true) / batch_size
 
 
 class MSE:
@@ -65,7 +66,7 @@ class MSE:
     Mean Squared Error Loss for regression.
     
     Formula:
-      L = (1/n) * Σ(y_true - y_pred)^2
+      L = (1/batch_size) * Σ(y_true - y_pred)^2
     
     Gradient: dL/dy_pred = -2 * (y_true - y_pred) / n
     """
@@ -81,17 +82,19 @@ class MSE:
         Returns:
             loss: Scalar average loss
         """
+        batch_size = y_true.shape[0]
         diff = y_true - y_pred
-        loss = np.mean(diff ** 2)
+        loss = np.sum(diff ** 2) / batch_size
         return loss
     
     def gradient(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         """
         Compute gradient of MSE w.r.t. output.
         
-        dL/dy_pred = -2 * (y_true - y_pred) 
+        dL/dy_pred = -2 * (y_true - y_pred) / batch_size
         """
-        return -2 * (y_true - y_pred) 
+        batch_size = y_true.shape[0]
+        return -2 * (y_true - y_pred) / batch_size
 
 
 class BinaryCrossentropy:

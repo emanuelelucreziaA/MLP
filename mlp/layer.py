@@ -96,8 +96,6 @@ class DenseLayer:
         Returns:
             dL_dinput: Gradient of loss w.r.t. input of shape (batch_size, input_size)
         """
-        batch_size = self.input_cache.shape[0]
-        
         # If activation function exists, apply its derivative
         if self.activation_derivative is not None:
             dL_dz = dL_dout * self.activation_derivative(self.z_cache)
@@ -106,10 +104,10 @@ class DenseLayer:
         
         # Compute gradients
         # dL/dW = x^T @ dL/dz  (chain rule: dL/dW = dL/dz @ dz/dW = dL/dz @ x)
-        self.dW = np.dot(self.input_cache.T, dL_dz) / batch_size
+        self.dW = np.dot(self.input_cache.T, dL_dz)
         
         # dL/db = sum(dL/dz) over batch
-        self.db = np.sum(dL_dz, axis=0, keepdims=True) / batch_size
+        self.db = np.sum(dL_dz, axis=0, keepdims=True)
         
         # Propagate to previous layer: dL/dinput = dL/dz @ W^T
         dL_dinput = np.dot(dL_dz, self.W.T)

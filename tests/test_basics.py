@@ -172,8 +172,11 @@ def test_loss_functions():
     
     ce_loss = CrossEntropy()
     loss = ce_loss(y_true, y_pred)
+    ce_grad = ce_loss.gradient(y_true, y_pred)
+    expected_ce_grad = (y_pred - y_true) / y_true.shape[0]
     print(f"CrossEntropy Loss: {loss:.4f}")
     print(f"✓ CrossEntropy loss is positive: {loss > 0}")
+    print(f"✓ CrossEntropy gradient is batch-normalized: {np.allclose(ce_grad, expected_ce_grad)}")
     
     # Test MSE
     y_true_reg = np.array([[1, 2], [3, 4]], dtype=np.float32)
@@ -181,8 +184,11 @@ def test_loss_functions():
     
     mse_loss = MSE()
     loss = mse_loss(y_true_reg, y_pred_reg)
+    mse_grad = mse_loss.gradient(y_true_reg, y_pred_reg)
+    expected_mse_grad = -2 * (y_true_reg - y_pred_reg) / y_true_reg.shape[0]
     print(f"\nMSE Loss: {loss:.6f}")
-    print(f"✓ MSE loss is small (near perfect prediction): {loss < 0.01}")
+    print(f"✓ MSE loss is small (near perfect prediction): {loss < 0.03}")
+    print(f"✓ MSE gradient is batch-normalized: {np.allclose(mse_grad, expected_mse_grad)}")
 
 
 def test_optimizer_sgd():
