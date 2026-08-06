@@ -10,11 +10,10 @@ import pickle
 
 import numpy as np
 
-from mlp.activations import relu, relu_derivative, softmax
-from mlp.data import MNISTLoader, one_hot_encode
-from mlp.layer import DenseLayer
+from mlp.builder import build_classifier
+from mlp.data import MNISTLoader, create_batches, one_hot_encode
 from mlp.losses import CrossEntropy
-from mlp.network import MLP
+from mlp.metrics import compute_accuracy
 from mlp.optimizers import Adam
 from mlp.runtime import initialize_environment
 
@@ -29,27 +28,10 @@ def build_model(input_size=784, output_size=10, hidden_sizes=(256, 128, 64)):
     print(f"Architecture: {' -> '.join(str(v) for v in arch)}")
     print("=" * 70)
 
-    model = MLP()
-
-    previous_size = input_size
-    for hidden_size in hidden_sizes:
-        model.add_layer(
-            DenseLayer(
-                input_size=previous_size,
-                output_size=hidden_size,
-                activation_fn=relu,
-                activation_derivative=relu_derivative,
-            )
-        )
-        previous_size = hidden_size
-
-    model.add_layer(
-        DenseLayer(
-            input_size=previous_size,
-            output_size=output_size,
-            activation_fn=None,
-            activation_derivative=None,
-        )
+    model = build_classifier(
+        input_size=input_size,
+        output_size=output_size,
+        hidden_sizes=hidden_sizes,
     )
 
     model.set_optimizer(Adam(learning_rate=0.001))
@@ -57,13 +39,6 @@ def build_model(input_size=784, output_size=10, hidden_sizes=(256, 128, 64)):
 
     model.summary()
     return model
-
-
-def compute_accuracy(y_true, y_pred):
-    """Compute classification accuracy."""
-    predictions = np.argmax(y_pred, axis=1)
-    accuracy = np.mean(predictions == y_true)
-    return accuracy
 
 
 def train_epoch(model, x_train, y_train_onehot, batch_size=32):
@@ -77,19 +52,12 @@ def train_epoch(model, x_train, y_train_onehot, batch_size=32):
     n_batches = (n_samples + batch_size - 1) // batch_size
 
     total_loss = 0.0
-    indices = np.arange(n_samples)
-    np.random.shuffle(indices)
 
-    for batch_idx in range(n_batches):
-        start_idx = batch_idx * batch_size
-        end_idx = min(start_idx + batch_size, n_samples)
-        batch_indices = indices[start_idx:end_idx]
+    for batch_idx, (x_batch, y_batch) in enumerate(
+        create_batches(x_train, y_train_onehot, batch_size=batch_size, shuffle=True)
+    ):
 
-        x_batch = x_train[batch_indices]
-        y_batch = y_train_onehot[batch_indices]
-
-        y_pred = model.forward(x_batch)
-        y_pred_softmax = softmax(y_pred)
+        y_pred_softmax = model.predict_proba(x_batch)
 
         loss = model.loss_fn(y_batch, y_pred_softmax)
         total_loss += loss
@@ -107,11 +75,10 @@ def train_epoch(model, x_train, y_train_onehot, batch_size=32):
 
 def evaluate(model, x_test, y_test):
     """Evaluate model on test set."""
-    y_pred_logits = model.forward(x_test)
-    y_pred_softmax = softmax(y_pred_logits)
+    y_pred_softmax = model.predict_proba(x_test)
 
     accuracy = compute_accuracy(y_test, y_pred_softmax)
-    loss = model.loss_fn(one_hot_encode(y_test, 10), y_pred_softmax)
+    loss = model.loss_fn(one_hot_encode(y_test, y_pred_softmax.shape[1]), y_pred_softmax)
 
     return accuracy, loss
 
@@ -131,12 +98,13 @@ def main():
 
     x_train, y_train = loader.get_train_data()
     x_test, y_test = loader.get_test_data()
+    n_classes = int(np.max(y_train)) + 1
 
-    y_train_onehot = one_hot_encode(y_train, num_classes=10)
+    y_train_onehot = one_hot_encode(y_train, num_classes=n_classes)
 
     model = build_model(
         input_size=x_train.shape[1],
-        output_size=10,
+        output_size=n_classes,
         hidden_sizes=hidden_sizes,
     )
 
@@ -177,7 +145,7 @@ def main():
         "dataset_mode": "mnist",
         "input_size": x_train.shape[1],
         "hidden_sizes": list(hidden_sizes),
-        "output_size": 10,
+        "output_size": n_classes,
         "train_losses": train_losses,
         "test_losses": test_losses,
         "test_metrics": test_accuracies,

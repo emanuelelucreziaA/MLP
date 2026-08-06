@@ -8,6 +8,8 @@ from typing import Callable
 
 import numpy as np
 
+from .activations import relu
+
 
 class DenseLayer:
     """
@@ -38,10 +40,14 @@ class DenseLayer:
         self.output_size = output_size
         self.activation_fn = activation_fn
         self.activation_derivative = activation_derivative
-        
-        # He initialization for weights (optimal for ReLU)
-        # Ref: He et al., 2015 - scales by sqrt(2/input_size) for ReLU
-        self.W = np.random.randn(input_size, output_size) * np.sqrt(2.0 / input_size)
+
+        # Match initialization to activation family.
+        if activation_fn is relu:
+            scale = np.sqrt(2.0 / input_size)  # He init for ReLU
+        else:
+            scale = np.sqrt(1.0 / input_size)  # Xavier/Glorot for non-ReLU or linear
+
+        self.W = np.random.randn(input_size, output_size) * scale
         self.b = np.zeros((1, output_size))
         
         # Gradients (computed during backward pass)
@@ -90,8 +96,6 @@ class DenseLayer:
         Returns:
             dL_dinput: Gradient of loss w.r.t. input of shape (batch_size, input_size)
         """
-        batch_size = self.input_cache.shape[0]
-        
         # If activation function exists, apply its derivative
         if self.activation_derivative is not None:
             dL_dz = dL_dout * self.activation_derivative(self.z_cache)
@@ -100,10 +104,10 @@ class DenseLayer:
         
         # Compute gradients
         # dL/dW = x^T @ dL/dz  (chain rule: dL/dW = dL/dz @ dz/dW = dL/dz @ x)
-        self.dW = np.dot(self.input_cache.T, dL_dz) / batch_size
+        self.dW = np.dot(self.input_cache.T, dL_dz)
         
         # dL/db = sum(dL/dz) over batch
-        self.db = np.sum(dL_dz, axis=0, keepdims=True) / batch_size
+        self.db = np.sum(dL_dz, axis=0, keepdims=True)
         
         # Propagate to previous layer: dL/dinput = dL/dz @ W^T
         dL_dinput = np.dot(dL_dz, self.W.T)

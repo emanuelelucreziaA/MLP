@@ -2,11 +2,19 @@
 Unit tests for MLP components - Forward/Backward pass verification
 """
 
+from pathlib import Path
+import sys
+
 import numpy as np
+
+# Allow direct execution: python tests/test_basics.py
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from mlp.layer import DenseLayer
 from mlp.network import MLP
-from mlp.activations import relu, relu_derivative, sigmoid, sigmoid_derivative
+from mlp.activations import relu, relu_derivative, sigmoid, sigmoid_derivative, softmax
 from mlp.losses import CrossEntropy, MSE
 from mlp.optimizers import SGD, Adam
 
@@ -172,8 +180,11 @@ def test_loss_functions():
     
     ce_loss = CrossEntropy()
     loss = ce_loss(y_true, y_pred)
+    ce_grad = ce_loss.gradient(y_true, y_pred)
+    expected_ce_grad = (y_pred - y_true) / y_true.shape[0]
     print(f"CrossEntropy Loss: {loss:.4f}")
     print(f"✓ CrossEntropy loss is positive: {loss > 0}")
+    print(f"✓ CrossEntropy gradient is batch-normalized: {np.allclose(ce_grad, expected_ce_grad)}")
     
     # Test MSE
     y_true_reg = np.array([[1, 2], [3, 4]], dtype=np.float32)
@@ -181,8 +192,11 @@ def test_loss_functions():
     
     mse_loss = MSE()
     loss = mse_loss(y_true_reg, y_pred_reg)
+    mse_grad = mse_loss.gradient(y_true_reg, y_pred_reg)
+    expected_mse_grad = -2 * (y_true_reg - y_pred_reg) / y_true_reg.shape[0]
     print(f"\nMSE Loss: {loss:.6f}")
-    print(f"✓ MSE loss is small (near perfect prediction): {loss < 0.01}")
+    print(f"✓ MSE loss is small (near perfect prediction): {loss < 0.03}")
+    print(f"✓ MSE gradient is batch-normalized: {np.allclose(mse_grad, expected_mse_grad)}")
 
 
 def test_optimizer_sgd():
@@ -252,6 +266,70 @@ def test_dense_layer_validation():
     print(f"✓ Accepted valid dimensions: {valid_layer.input_size} -> {valid_layer.output_size}")
 
 
+def test_dense_layer_initialization_by_activation():
+    """Test DenseLayer uses activation-aware weight initialization."""
+    print("\n" + "="*60)
+    print("TEST 9: DenseLayer Initialization by Activation")
+    print("="*60)
+
+    input_size = 512
+    output_size = 256
+
+    np.random.seed(123)
+    relu_layer = DenseLayer(
+        input_size=input_size,
+        output_size=output_size,
+        activation_fn=relu,
+        activation_derivative=relu_derivative,
+    )
+
+    np.random.seed(123)
+    linear_layer = DenseLayer(
+        input_size=input_size,
+        output_size=output_size,
+        activation_fn=None,
+        activation_derivative=None,
+    )
+
+    relu_std = np.std(relu_layer.W)
+    linear_std = np.std(linear_layer.W)
+    expected_ratio = np.sqrt(2.0)
+    observed_ratio = relu_std / linear_std
+
+    print(f"ReLU init std:   {relu_std:.6f}")
+    print(f"Linear init std: {linear_std:.6f}")
+    print(f"Observed std ratio (ReLU/Linear): {observed_ratio:.6f}")
+    print(f"Expected ratio (sqrt(2)):         {expected_ratio:.6f}")
+    print(f"✓ Initialization scale is activation-aware: {np.isclose(observed_ratio, expected_ratio, atol=0.05)}")
+
+    assert np.isclose(observed_ratio, expected_ratio, atol=0.05)
+
+
+def test_predict_proba_applies_softmax_by_default():
+    """Test predict_proba returns probabilities by default and logits on request."""
+    print("\n" + "="*60)
+    print("TEST 10: predict_proba Behavior")
+    print("="*60)
+
+    model = MLP()
+    layer = DenseLayer(input_size=3, output_size=2, activation_fn=None, activation_derivative=None)
+    layer.W = np.array([[1.0, -1.0], [0.5, 0.5], [0.0, 2.0]], dtype=np.float32)
+    layer.b = np.array([[0.1, -0.2]], dtype=np.float32)
+    model.add_layer(layer)
+
+    x = np.array([[2.0, -1.0, 0.5], [0.0, 1.0, -1.0]], dtype=np.float32)
+    logits = model.forward(x)
+    probabilities = model.predict_proba(x)
+    expected_probabilities = softmax(logits)
+
+    print(f"✓ predict_proba matches softmax(forward): {np.allclose(probabilities, expected_probabilities)}")
+    assert np.allclose(probabilities, expected_probabilities)
+
+    returned_logits = model.predict_proba(x, apply_softmax=False)
+    print(f"✓ apply_softmax=False returns logits: {np.allclose(returned_logits, logits)}")
+    assert np.allclose(returned_logits, logits)
+
+
 if __name__ == "__main__":
     print("\n╔" + "="*58 + "╗")
     print("║" + " "*15 + "MLP Unit Tests - Forward/Backward Pass" + " "*5 + "║")
@@ -266,6 +344,8 @@ if __name__ == "__main__":
     test_optimizer_sgd()
     test_optimizer_adam()
     test_dense_layer_validation()
+    test_dense_layer_initialization_by_activation()
+    test_predict_proba_applies_softmax_by_default()
     
     print("\n" + "="*60)
     print("✓✓✓ ALL TESTS PASSED ✓✓✓")

@@ -9,12 +9,9 @@ Usage:
 import pickle
 from pathlib import Path
 
-import numpy as np
-
-from mlp.activations import relu, relu_derivative, softmax
+from mlp.builder import build_classifier
 from mlp.data import MNISTLoader
-from mlp.layer import DenseLayer
-from mlp.network import MLP
+from mlp.metrics import classification_metrics
 from mlp.runtime import initialize_environment
 
 PROJECT_ROOT, _ = initialize_environment()
@@ -34,55 +31,15 @@ def load_model(model_path):
         return None
 
 
-def build_model(input_size=784, output_size=10, hidden_sizes=(256, 128, 64)):
-    """Build MLP model from checkpoint metadata."""
-    model = MLP()
-    previous_size = input_size
-
-    for hidden_size in hidden_sizes:
-        model.add_layer(
-            DenseLayer(
-                previous_size,
-                hidden_size,
-                activation_fn=relu,
-                activation_derivative=relu_derivative,
-            )
-        )
-        previous_size = hidden_size
-
-    model.add_layer(DenseLayer(previous_size, output_size, activation_fn=None, activation_derivative=None))
-    return model
-
-
-def confusion_matrix(y_true, y_pred, num_classes=10):
-    """Compute confusion matrix."""
-    cm = np.zeros((num_classes, num_classes))
-
-    for i in range(len(y_true)):
-        cm[y_true[i], y_pred[i]] += 1
-
-    return cm
-
-
 def print_metrics(y_true, y_pred_proba, model_name="Model"):
     """Print detailed evaluation metrics."""
-    y_pred = np.argmax(y_pred_proba, axis=1)
-
-    accuracy = np.mean(y_pred == y_true)
-    cm = confusion_matrix(y_true, y_pred)
-
-    precision = np.zeros(10)
-    recall = np.zeros(10)
-    f1 = np.zeros(10)
-
-    for c in range(10):
-        tp = cm[c, c]
-        fp = np.sum(cm[:, c]) - tp
-        fn = np.sum(cm[c, :]) - tp
-
-        precision[c] = tp / (tp + fp) if (tp + fp) > 0 else 0
-        recall[c] = tp / (tp + fn) if (tp + fn) > 0 else 0
-        f1[c] = 2 * (precision[c] * recall[c]) / (precision[c] + recall[c]) if (precision[c] + recall[c]) > 0 else 0
+    metrics = classification_metrics(y_true, y_pred_proba)
+    accuracy = metrics["accuracy"]
+    cm = metrics["confusion_matrix"]
+    precision = metrics["precision"]
+    recall = metrics["recall"]
+    f1 = metrics["f1"]
+    num_classes = cm.shape[0]
 
     print(f"\n{'=' * 70}")
     print(f"{model_name} - Evaluation Metrics")
@@ -91,21 +48,15 @@ def print_metrics(y_true, y_pred_proba, model_name="Model"):
     print("\nPer-Class Metrics:")
     print(f"{'Class':<8} {'Precision':<15} {'Recall':<15} {'F1-Score':<15}")
     print("-" * 53)
-    for c in range(10):
+    for c in range(num_classes):
         print(f"{c:<8} {precision[c]:<15.4f} {recall[c]:<15.4f} {f1[c]:<15.4f}")
 
     print("\nMacro Average:")
-    print(f"  Precision: {np.mean(precision):.4f}")
-    print(f"  Recall: {np.mean(recall):.4f}")
-    print(f"  F1-Score: {np.mean(f1):.4f}")
+    print(f"  Precision: {metrics['macro_precision']:.4f}")
+    print(f"  Recall: {metrics['macro_recall']:.4f}")
+    print(f"  F1-Score: {metrics['macro_f1']:.4f}")
 
-    return {
-        "accuracy": accuracy,
-        "precision": precision,
-        "recall": recall,
-        "f1": f1,
-        "confusion_matrix": cm,
-    }
+    return metrics
 
 
 def main():
@@ -128,7 +79,7 @@ def main():
         return
 
     hidden_sizes = tuple(model_data.get("hidden_sizes", [256, 128, 64]))
-    model = build_model(
+    model = build_classifier(
         input_size=model_data.get("input_size", 784),
         output_size=model_data.get("output_size", 10),
         hidden_sizes=hidden_sizes,
@@ -136,8 +87,7 @@ def main():
     model.set_weights(model_data["weights"])
 
     print("\nRunning inference on test set...")
-    y_pred_proba = model.forward(x_test)
-    y_pred_proba = softmax(y_pred_proba)
+    y_pred_proba = model.predict_proba(x_test)
 
     metrics = print_metrics(y_test, y_pred_proba, "Trained MLP")
 
@@ -160,7 +110,7 @@ def main():
     print(f"{'True Class':<15} {'Predicted':<15} {'Confidence':<15} {'Correct':<10}")
     print("-" * 55)
 
-    y_pred = np.argmax(y_pred_proba, axis=1)
+    y_pred = metrics["y_pred"]
     for i in range(min(10, x_test.shape[0])):
         true_class = y_test[i]
         pred_class = y_pred[i]

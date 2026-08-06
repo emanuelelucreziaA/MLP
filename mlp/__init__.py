@@ -23,6 +23,13 @@ from .activations import (
 # Loss and optimizer imports
 from .losses import CrossEntropy, MSE
 from .optimizers import SGD, Adam
+from .builder import build_classifier
+from .metrics import (
+    prediction_labels,
+    compute_accuracy,
+    confusion_matrix,
+    classification_metrics,
+)
 
 
 def __getattr__(name):
@@ -43,5 +50,7 @@ __all__ = [
     'softmax',
     'CrossEntropy', 'MSE',
     'SGD', 'Adam',
+    'build_classifier',
+    'prediction_labels', 'compute_accuracy', 'confusion_matrix', 'classification_metrics',
     'MNISTLoader', 'one_hot_encode',
 ]
