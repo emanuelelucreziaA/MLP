@@ -17,11 +17,12 @@ dependencies = [
 ]
 
 [project.scripts]
-mlp-train = "mlp.train:main"
-mlp-evaluate = "mlp.evaluate:main"
+mlp-train = "train:main"
+mlp-evaluate = "evaluate:main"
 
 [tool.setuptools]
 include-package-data = true
+py-modules = ["train", "evaluate"]
 
 [tool.setuptools.packages.find]
 include = ["mlp*"]

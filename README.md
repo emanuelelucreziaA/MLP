@@ -47,7 +47,7 @@ python -m pip install -e .
 ### 2. Train Model
 
 ```bash
-python -m mlp.train
+python train.py
 ```
 
 This will:
@@ -65,7 +65,7 @@ mlp-train
 ### 3. Evaluate Model
 
 ```bash
-python -m mlp.evaluate
+python evaluate.py
 ```
 
 This will:
