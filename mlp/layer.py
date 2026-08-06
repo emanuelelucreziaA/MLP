@@ -8,7 +8,7 @@ from typing import Callable
 
 import numpy as np
 
-from mlp.activations import relu
+from .activations import relu
 
 
 class DenseLayer:
