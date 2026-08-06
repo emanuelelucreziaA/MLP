@@ -11,7 +11,7 @@ from pathlib import Path
 
 import numpy as np
 
-from mlp.activations import relu, relu_derivative, softmax
+from mlp.activations import relu, relu_derivative
 from mlp.data import MNISTLoader
 from mlp.layer import DenseLayer
 from mlp.network import MLP
@@ -136,8 +136,7 @@ def main():
     model.set_weights(model_data["weights"])
 
     print("\nRunning inference on test set...")
-    y_pred_proba = model.forward(x_test)
-    y_pred_proba = softmax(y_pred_proba)
+    y_pred_proba = model.predict_proba(x_test)
 
     metrics = print_metrics(y_test, y_pred_proba, "Trained MLP")
 

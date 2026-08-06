@@ -6,7 +6,7 @@ import numpy as np
 
 from mlp.layer import DenseLayer
 from mlp.network import MLP
-from mlp.activations import relu, relu_derivative, sigmoid, sigmoid_derivative
+from mlp.activations import relu, relu_derivative, sigmoid, sigmoid_derivative, softmax
 from mlp.losses import CrossEntropy, MSE
 from mlp.optimizers import SGD, Adam
 
@@ -291,6 +291,31 @@ def test_dense_layer_initialization_by_activation():
     assert np.isclose(observed_ratio, expected_ratio, atol=0.05)
 
 
+def test_predict_proba_applies_softmax_by_default():
+    """Test predict_proba returns probabilities by default and logits on request."""
+    print("\n" + "="*60)
+    print("TEST 10: predict_proba Behavior")
+    print("="*60)
+
+    model = MLP()
+    layer = DenseLayer(input_size=3, output_size=2, activation_fn=None, activation_derivative=None)
+    layer.W = np.array([[1.0, -1.0], [0.5, 0.5], [0.0, 2.0]], dtype=np.float32)
+    layer.b = np.array([[0.1, -0.2]], dtype=np.float32)
+    model.add_layer(layer)
+
+    x = np.array([[2.0, -1.0, 0.5], [0.0, 1.0, -1.0]], dtype=np.float32)
+    logits = model.forward(x)
+    probabilities = model.predict_proba(x)
+    expected_probabilities = softmax(logits)
+
+    print(f"✓ predict_proba matches softmax(forward): {np.allclose(probabilities, expected_probabilities)}")
+    assert np.allclose(probabilities, expected_probabilities)
+
+    returned_logits = model.predict_proba(x, apply_softmax=False)
+    print(f"✓ apply_softmax=False returns logits: {np.allclose(returned_logits, logits)}")
+    assert np.allclose(returned_logits, logits)
+
+
 if __name__ == "__main__":
     print("\n╔" + "="*58 + "╗")
     print("║" + " "*15 + "MLP Unit Tests - Forward/Backward Pass" + " "*5 + "║")
@@ -306,6 +331,7 @@ if __name__ == "__main__":
     test_optimizer_adam()
     test_dense_layer_validation()
     test_dense_layer_initialization_by_activation()
+    test_predict_proba_applies_softmax_by_default()
     
     print("\n" + "="*60)
     print("✓✓✓ ALL TESTS PASSED ✓✓✓")

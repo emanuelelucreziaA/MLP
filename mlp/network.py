@@ -7,6 +7,7 @@ from __future__ import annotations
 import copy
 import numpy as np
 
+from .activations import softmax
 from .layer import DenseLayer
 
 
@@ -103,9 +104,22 @@ class MLP:
         logits = self.forward(x)
         return np.argmax(logits, axis=1)
     
-    def predict_proba(self, x: np.ndarray) -> np.ndarray:
-        """Get probability predictions (before argmax)"""
-        return self.forward(x)
+    def predict_proba(self, x: np.ndarray, apply_softmax: bool = True) -> np.ndarray:
+        """
+        Get probability predictions from network outputs.
+
+        Args:
+            x: Input of shape (batch_size, input_features)
+            apply_softmax: If True, return softmax probabilities.
+                If False, return raw logits.
+
+        Returns:
+            probabilities or logits of shape (batch_size, n_classes)
+        """
+        logits = self.forward(x)
+        if apply_softmax:
+            return softmax(logits)
+        return logits
     
     def get_layers(self) -> list[DenseLayer]:
         """Return list of layers"""

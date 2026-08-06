@@ -10,7 +10,7 @@ import pickle
 
 import numpy as np
 
-from mlp.activations import relu, relu_derivative, softmax
+from mlp.activations import relu, relu_derivative
 from mlp.data import MNISTLoader, one_hot_encode
 from mlp.layer import DenseLayer
 from mlp.losses import CrossEntropy
@@ -88,8 +88,7 @@ def train_epoch(model, x_train, y_train_onehot, batch_size=32):
         x_batch = x_train[batch_indices]
         y_batch = y_train_onehot[batch_indices]
 
-        y_pred = model.forward(x_batch)
-        y_pred_softmax = softmax(y_pred)
+        y_pred_softmax = model.predict_proba(x_batch)
 
         loss = model.loss_fn(y_batch, y_pred_softmax)
         total_loss += loss
@@ -107,8 +106,7 @@ def train_epoch(model, x_train, y_train_onehot, batch_size=32):
 
 def evaluate(model, x_test, y_test):
     """Evaluate model on test set."""
-    y_pred_logits = model.forward(x_test)
-    y_pred_softmax = softmax(y_pred_logits)
+    y_pred_softmax = model.predict_proba(x_test)
 
     accuracy = compute_accuracy(y_test, y_pred_softmax)
     loss = model.loss_fn(one_hot_encode(y_test, 10), y_pred_softmax)
