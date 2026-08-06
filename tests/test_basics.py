@@ -252,6 +252,45 @@ def test_dense_layer_validation():
     print(f"✓ Accepted valid dimensions: {valid_layer.input_size} -> {valid_layer.output_size}")
 
 
+def test_dense_layer_initialization_by_activation():
+    """Test DenseLayer uses activation-aware weight initialization."""
+    print("\n" + "="*60)
+    print("TEST 9: DenseLayer Initialization by Activation")
+    print("="*60)
+
+    input_size = 512
+    output_size = 256
+
+    np.random.seed(123)
+    relu_layer = DenseLayer(
+        input_size=input_size,
+        output_size=output_size,
+        activation_fn=relu,
+        activation_derivative=relu_derivative,
+    )
+
+    np.random.seed(123)
+    linear_layer = DenseLayer(
+        input_size=input_size,
+        output_size=output_size,
+        activation_fn=None,
+        activation_derivative=None,
+    )
+
+    relu_std = np.std(relu_layer.W)
+    linear_std = np.std(linear_layer.W)
+    expected_ratio = np.sqrt(2.0)
+    observed_ratio = relu_std / linear_std
+
+    print(f"ReLU init std:   {relu_std:.6f}")
+    print(f"Linear init std: {linear_std:.6f}")
+    print(f"Observed std ratio (ReLU/Linear): {observed_ratio:.6f}")
+    print(f"Expected ratio (sqrt(2)):         {expected_ratio:.6f}")
+    print(f"✓ Initialization scale is activation-aware: {np.isclose(observed_ratio, expected_ratio, atol=0.05)}")
+
+    assert np.isclose(observed_ratio, expected_ratio, atol=0.05)
+
+
 if __name__ == "__main__":
     print("\n╔" + "="*58 + "╗")
     print("║" + " "*15 + "MLP Unit Tests - Forward/Backward Pass" + " "*5 + "║")
@@ -266,6 +305,7 @@ if __name__ == "__main__":
     test_optimizer_sgd()
     test_optimizer_adam()
     test_dense_layer_validation()
+    test_dense_layer_initialization_by_activation()
     
     print("\n" + "="*60)
     print("✓✓✓ ALL TESTS PASSED ✓✓✓")
