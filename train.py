@@ -186,11 +186,11 @@ def main():
     with model_save_path.open("wb") as file_handle:
         pickle.dump(model_data, file_handle)
 
-    print("\nResults saved to data/")
-    print("  - train_losses.npy")
-    print("  - test_accuracies.npy")
-    print("  - test_losses.npy")
-    print("Model checkpoint saved to mlp_model.pkl")
+    print(f"\nResults saved to {DATA_DIR}/")
+    print(f"  - {DATA_DIR / 'train_losses.npy'}")
+    print(f"  - {DATA_DIR / 'test_accuracies.npy'}")
+    print(f"  - {DATA_DIR / 'test_losses.npy'}")
+    print(f"Model checkpoint saved to {model_save_path}")
 
     return model, train_losses, test_accuracies, test_losses
 
