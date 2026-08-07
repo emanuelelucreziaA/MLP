@@ -109,14 +109,14 @@ Input (784)
 
 - Optimizer: Adam (learning rate: 0.001)
 - Loss: Cross-Entropy
-- Epochs: 10
+- Epochs: 50
 - Batch size: 32
 
 ## Implementation Notes
 
-- The output layer uses logits; softmax is applied outside the final layer.
 - Checkpoints include architecture metadata to avoid train/eval mismatch.
 - Metric histories are stored as NumPy arrays in `data/` for notebook analysis.
+- Run the notebook `analysis.ipynb` to visualize results and weights.
 
 ## Known Limitations
 
