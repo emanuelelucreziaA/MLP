@@ -19,8 +19,13 @@ from mlp.runtime import initialize_environment
 
 PROJECT_ROOT, DATA_DIR = initialize_environment(ensure_data_dir=True)
 
+DEFAULT_EPOCHS = 50
+DEFAULT_BATCH_SIZE = 32
+DEFAULT_HIDDEN_SIZES = (256, 128, 64)
+DEFAULT_LEARNING_RATE = 0.001
 
-def build_model(input_size=784, output_size=10, hidden_sizes=(256, 128, 64)):
+
+def build_model(input_size=784, output_size=10, hidden_sizes=DEFAULT_HIDDEN_SIZES):
     """Build MLP architecture for MNIST classification."""
     print("\n" + "=" * 70)
     arch = [input_size] + list(hidden_sizes) + [output_size]
@@ -34,14 +39,14 @@ def build_model(input_size=784, output_size=10, hidden_sizes=(256, 128, 64)):
         hidden_sizes=hidden_sizes,
     )
 
-    model.set_optimizer(Adam(learning_rate=0.001))
+    model.set_optimizer(Adam(learning_rate=DEFAULT_LEARNING_RATE))
     model.set_loss(CrossEntropy())
 
     model.summary()
     return model
 
 
-def train_epoch(model, x_train, y_train_onehot, batch_size=32):
+def train_epoch(model, x_train, y_train_onehot, batch_size=DEFAULT_BATCH_SIZE):
     """
     Train model for one epoch with mini-batch gradient descent.
 
@@ -88,9 +93,9 @@ def main():
     print("MLP Training Pipeline - dataset mode: mnist")
     print("=" * 70)
 
-    n_epochs = 50
-    batch_size = 36
-    hidden_sizes = (256, 128, 64)
+    n_epochs = DEFAULT_EPOCHS
+    batch_size = DEFAULT_BATCH_SIZE
+    hidden_sizes = DEFAULT_HIDDEN_SIZES
 
     print("Loading MNIST dataset...")
     loader = MNISTLoader(use_keras=True)

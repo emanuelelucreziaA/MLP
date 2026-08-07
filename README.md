@@ -25,8 +25,7 @@ MLP/
 │   └── data.py               # MNIST loading and preprocessing
 ├── train.py                  # Training script
 ├── evaluate.py               # Evaluation script
-├── tests/
-│   └── test_basics.py        # Unit tests
+├── test_basics.py            # Unit tests
 ├── notebooks/
 │   └── analysis.ipynb        # Analysis notebook
 ├── data/                     # Saved metrics and artifacts
@@ -39,6 +38,7 @@ MLP/
 ### 1. Install Dependencies
 
 ```bash
+python -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -e .
@@ -52,7 +52,7 @@ python train.py
 
 This will:
 - Load MNIST (via Keras if available, otherwise synthetic fallback)
-- Train an MLP classifier for 10 epochs
+- Train an MLP classifier for 50 epochs
 - Save metrics to `data/`
 - Save checkpoint metadata and weights to `mlp_model.pkl`
 
@@ -83,7 +83,7 @@ mlp-evaluate
 ### 4. Run Tests
 
 ```bash
-python -m pytest tests/test_basics.py
+python -m pytest test_basics.py
 ```
 
 Tests cover:

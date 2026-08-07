@@ -7,7 +7,7 @@ import sys
 
 import numpy as np
 
-# Allow direct execution: python tests/test_basics.py
+# Allow direct execution: python test_basics.py
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -47,6 +47,8 @@ def test_forward_pass():
     expected = x @ layer.W + layer.b
     print(f"Expected:\n{expected}")
     print(f"✓ Forward pass correct: {np.allclose(output, expected)}")
+    assert output.shape == (2, 2)
+    assert np.allclose(output, expected)
     
     return layer, x, output
 
@@ -96,6 +98,10 @@ def test_backward_pass(layer, x, output):
     diff = np.max(np.abs(dW - dW_numerical))
     print(f"Max gradient difference (dW): {diff:.6f}")
     print(f"✓ Gradients match numerically: {diff < 1e-4}")
+    assert dL_dinput.shape == x.shape
+    assert dW.shape == layer.W.shape
+    assert db.shape == layer.b.shape
+    assert diff < 1e-4
     
     return dW, db
 
@@ -123,6 +129,7 @@ def test_activation_derivatives():
     print(f"Analytical: {analytical}")
     print(f"Numerical:  {numerical}")
     print(f"✓ ReLU derivative correct: {np.allclose(analytical, numerical, atol=1e-3)}")
+    assert np.allclose(analytical, numerical, atol=1e-3)
     
     # Test Sigmoid
     print("\nSigmoid derivative:")
@@ -138,6 +145,7 @@ def test_activation_derivatives():
     print(f"Analytical: {analytical}")
     print(f"Numerical:  {numerical}")
     print(f"✓ Sigmoid derivative correct: {np.allclose(analytical, numerical, atol=1e-3)}")
+    assert np.allclose(analytical, numerical, atol=1e-3)
 
 
 def test_mlp_forward():
@@ -162,6 +170,7 @@ def test_mlp_forward():
     print(f"Input shape: {x.shape}")
     print(f"Output shape: {output.shape}")
     print(f"✓ MLP output shape correct: {output.shape == (5, 2)}")
+    assert output.shape == (5, 2)
     
     model.summary()
     
@@ -185,6 +194,8 @@ def test_loss_functions():
     print(f"CrossEntropy Loss: {loss:.4f}")
     print(f"✓ CrossEntropy loss is positive: {loss > 0}")
     print(f"✓ CrossEntropy gradient is batch-normalized: {np.allclose(ce_grad, expected_ce_grad)}")
+    assert loss > 0
+    assert np.allclose(ce_grad, expected_ce_grad)
     
     # Test MSE
     y_true_reg = np.array([[1, 2], [3, 4]], dtype=np.float32)
@@ -197,6 +208,8 @@ def test_loss_functions():
     print(f"\nMSE Loss: {loss:.6f}")
     print(f"✓ MSE loss is small (near perfect prediction): {loss < 0.03}")
     print(f"✓ MSE gradient is batch-normalized: {np.allclose(mse_grad, expected_mse_grad)}")
+    assert loss < 0.03
+    assert np.allclose(mse_grad, expected_mse_grad)
 
 
 def test_optimizer_sgd():
@@ -216,6 +229,10 @@ def test_optimizer_sgd():
     print(f"Update W:\n{update_W}")
     print(f"Update b:\n{update_b}")
     print(f"✓ SGD update computed: {update_W.shape == dW.shape}")
+    assert update_W.shape == dW.shape
+    assert update_b.shape == db.shape
+    assert np.allclose(update_W, optimizer.learning_rate * dW)
+    assert np.allclose(update_b, optimizer.learning_rate * db)
 
 
 def test_optimizer_adam():
@@ -237,6 +254,10 @@ def test_optimizer_adam():
         print(f"Step {step+1}: update_W mean = {np.mean(np.abs(update_W)):.6f}")
     
     print(f"✓ Adam optimizer working: updates computed across steps")
+    assert update_W.shape == dW.shape
+    assert update_b.shape == db.shape
+    assert np.isfinite(update_W).all()
+    assert np.isfinite(update_b).all()
 
 
 def test_dense_layer_validation():
