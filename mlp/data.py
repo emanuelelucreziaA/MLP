@@ -2,11 +2,10 @@
 Data utilities: MNIST dataset loading and preprocessing
 """
 
-import numpy as np
-from urllib.request import urlopen
 import gzip
-import pickle
 import os
+
+import numpy as np
 
 
 def load_mnist_from_keras():
@@ -18,36 +17,7 @@ def load_mnist_from_keras():
         from tensorflow.keras.datasets import mnist
         (x_train, y_train), (x_test, y_test) = mnist.load_data()
         return x_train, y_train, x_test, y_test
-    except:
-        return None
-
-
-def load_mnist_raw():
-    """
-    Load MNIST dataset from raw online source.
-    Downloads gzipped pickle files.
-    """
-    base_url = 'http://yann.lecun.com/exdb/mnist/'
-    files = {
-        'x_train': 'train-images-idx3-ubyte.gz',
-        'y_train': 'train-labels-idx1-ubyte.gz',
-        'x_test': 't10k-images-idx3-ubyte.gz',
-        'y_test': 't10k-labels-idx1-ubyte.gz'
-    }
-
-    data_dir = os.path.join(os.path.dirname(__file__), '../data')
-    os.makedirs(data_dir, exist_ok=True)
-
-    try:
-        print("Attempting to load MNIST from online source...")
-
-        # Load X_train
-        print("Loading training images...")
-        urlopen(base_url + files['x_train']).read()
-        print("✓ Training images available")
-
-    except Exception as e:
-        print(f"Failed to load from online source: {e}")
+    except Exception:
         return None
 
 
@@ -57,7 +27,7 @@ def load_mnist(data_dir='./data', use_keras=True):
 
     Args:
         data_dir: Directory to store MNIST data
-        use_keras: Try Keras first, then fallback to raw
+        use_keras: Try Keras first, then fallback to synthetic
 
     Returns:
         x_train, y_train, x_test, y_test (normalized and flattened)
@@ -79,7 +49,6 @@ def load_mnist(data_dir='./data', use_keras=True):
 
             return x_train, y_train, x_test, y_test
 
-    # Fallback: create synthetic simple dataset for demo
     print("Warning: Using synthetic MNIST-like dataset for demonstration")
     return create_synthetic_mnist()
 
